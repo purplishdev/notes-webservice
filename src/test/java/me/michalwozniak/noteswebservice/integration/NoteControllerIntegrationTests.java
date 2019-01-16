@@ -4,9 +4,10 @@ import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecBuilder;
+import me.michalwozniak.noteswebservice.Api;
+import me.michalwozniak.noteswebservice.note.dto.NoteDto;
 import me.michalwozniak.noteswebservice.note.model.HistoryNote;
 import me.michalwozniak.noteswebservice.note.model.Note;
-import me.michalwozniak.noteswebservice.note.dto.NoteDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class NoteControllerIntegrationTests {
 
+    public final static NoteDto NOTE_DTO = new NoteDto("note title", "note content");
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -46,20 +49,16 @@ public class NoteControllerIntegrationTests {
 
     @Test
     public void create_note_should_create_and_return_new_note() {
-        NoteDto noteDto = new NoteDto("note title", "note content");
-
-        Note note = createNote(noteDto);
+        Note note = createNote(NOTE_DTO);
 
         assertThat(note).isNotNull();
         assertThat(note).isEqualToComparingOnlyGivenFields(
-                noteDto, "title", "content");
+                NOTE_DTO, "title", "content");
     }
 
     @Test
     public void get_note_should_return_existing_note() {
-        NoteDto noteDto = new NoteDto("note title", "note content");
-
-        Note note = createNote(noteDto);
+        Note note = createNote(NOTE_DTO);
         Note returnedNote = getNote(note.getId());
 
         assertThat(note).isNotNull();
@@ -70,10 +69,9 @@ public class NoteControllerIntegrationTests {
 
     @Test
     public void update_note_should_update_note_and_save_old_note_version() {
-        NoteDto noteDto = new NoteDto("note title", "note content");
         NoteDto updatedNoteDto = new NoteDto("updated title", "updated content");
 
-        Note note = createNote(noteDto);
+        Note note = createNote(NOTE_DTO);
         updateNote(note.getId(), updatedNoteDto);
         Note updatedNote = getNote(note.getId());
         List<HistoryNote> noteHistory = getNoteHistory(note.getId());
@@ -90,9 +88,7 @@ public class NoteControllerIntegrationTests {
 
     @Test
     public void delete_note_should_delete_existing_note_and_save_deleted_note_version() {
-        NoteDto noteDto = new NoteDto("note title", "note content");
-
-        Note note = createNote(noteDto);
+        Note note = createNote(NOTE_DTO);
         deleteNote(note.getId());
         getNote(note.getId(), 404);
         List<HistoryNote> noteHistory = getNoteHistory(note.getId());
@@ -105,10 +101,8 @@ public class NoteControllerIntegrationTests {
 
     @Test
     public void get_all_notes_should_return_single_note() {
-        NoteDto noteDto = new NoteDto("note title", "note content");
-
-        Note note = createNote(noteDto);
-        Note note2 = createNote(noteDto);
+        Note note = createNote(NOTE_DTO);
+        Note note2 = createNote(NOTE_DTO);
         deleteNote(note2.getId());
         List<Note> notes = getAllNotes();
 
@@ -121,7 +115,7 @@ public class NoteControllerIntegrationTests {
         return given()
                 .body(noteDto)
         .when()
-                .post("/api/notes")
+                .post(Api.NOTES)
         .then()
                 .statusCode(200)
                 .extract().body().as(Note.class);
@@ -129,7 +123,7 @@ public class NoteControllerIntegrationTests {
 
     private Note getNote(int id) {
         return when()
-                .get("/api/notes/" + id)
+                .get(Api.NOTE, id)
         .then()
                 .statusCode(200)
                 .extract().body().as(Note.class);
@@ -137,14 +131,14 @@ public class NoteControllerIntegrationTests {
 
     private void getNote(int id, int expectedStatus) {
         when()
-                .get("/api/notes/" + id)
+                .get(Api.NOTE, id)
         .then()
                 .statusCode(expectedStatus);
     }
 
     private List<Note> getAllNotes() {
         return when()
-                .get("/api/notes/")
+                .get(Api.NOTES)
         .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getList("$", Note.class);
@@ -154,7 +148,7 @@ public class NoteControllerIntegrationTests {
         return given()
                 .body(noteDto)
         .when()
-                .put("/api/notes/" + id)
+                .put(Api.NOTE, id)
         .then()
                 .statusCode(200)
                 .extract().body().as(Note.class);
@@ -162,7 +156,7 @@ public class NoteControllerIntegrationTests {
 
     private List<HistoryNote> getNoteHistory(int id) {
         return when()
-                .get("/api/notes/" + id + "/history")
+                .get(Api.NOTE_HISTORY, id)
         .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getList("$", HistoryNote.class);
@@ -170,7 +164,7 @@ public class NoteControllerIntegrationTests {
 
     private void deleteNote(int id) {
         when()
-                .delete("/api/notes/" + id)
+                .delete(Api.NOTE, id)
         .then()
                 .statusCode(200);
     }
