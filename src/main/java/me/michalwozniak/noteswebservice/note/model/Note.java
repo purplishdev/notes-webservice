@@ -47,7 +47,7 @@ public class Note implements Identifiable<Integer> {
     @Column(nullable = false, updatable = false)
     private LocalDateTime created;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "note", fetch = FetchType.LAZY)
     private List<HistoryNote> historyNotes = new ArrayList<>();
 
     protected Note() { }
