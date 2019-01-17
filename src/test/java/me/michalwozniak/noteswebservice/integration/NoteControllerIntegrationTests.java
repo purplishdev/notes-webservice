@@ -1,11 +1,8 @@
 package me.michalwozniak.noteswebservice.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.config.ObjectMapperConfig;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.Method;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecBuilder;
 import me.michalwozniak.noteswebservice.Api;
 import me.michalwozniak.noteswebservice.note.dto.HistoryNoteDto;
@@ -45,17 +42,11 @@ public class NoteControllerIntegrationTests {
     public static final String HAL_REL_HISTORY_NOTES = "noteHistory";
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private MockMvc mockMvc;
 
     @Before
     public void setUp() {
         RestAssuredMockMvc.mockMvc(mockMvc);
-        RestAssuredMockMvc.config = RestAssuredMockMvcConfig.config().objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                (type, s) -> objectMapper
-        ));
         RestAssuredMockMvc.enableLoggingOfRequestAndResponseIfValidationFails(LogDetail.ALL);
         RestAssuredMockMvc.requestSpecification = new MockMvcRequestSpecBuilder()
                 .setContentType("application/hal+json;charset=UTF-8")
@@ -120,6 +111,41 @@ public class NoteControllerIntegrationTests {
         assertThat(notes).hasSize(1);
         assertThat(notes).hasOnlyOneElementSatisfying(returnedNote ->
                 assertThat(returnedNote).isEqualToComparingOnlyGivenFields(note, REQUIRED_NOTE_FIELDS));
+    }
+
+    @Test
+    public void on_note_create_should_return_bad_request_when_invalid_note() {
+        NoteDto note = new NoteDto("", "");
+        given()
+                .body(note)
+        .when()
+                .post(Api.NOTES)
+        .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void on_note_get_should_return_not_found_when_note_does_not_exists() {
+        when()
+                .get(Api.NOTE, 15)
+        .then()
+                .statusCode(404);
+    }
+
+    @Test
+    public void on_note_delete_should_return_not_found_when_note_does_not_exists() {
+        when()
+                .delete(Api.NOTE, 15)
+        .then()
+                .statusCode(404);
+    }
+
+    @Test
+    public void on_note_history_get_should_return_not_found_when_note_does_not_exists() {
+        when()
+                .get(Api.NOTE_HISTORY, 15)
+        .then()
+                .statusCode(404);
     }
 
     private NoteDto createNote(NoteDto noteDto) {

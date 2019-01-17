@@ -8,9 +8,9 @@ import me.michalwozniak.noteswebservice.note.hateoas.HistoryNoteResourceAssemble
 import me.michalwozniak.noteswebservice.note.hateoas.NoteResourceAssembler;
 import me.michalwozniak.noteswebservice.note.model.HistoryNote;
 import me.michalwozniak.noteswebservice.note.model.Note;
-import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,6 +52,10 @@ public class NoteController {
     public ResponseEntity<Resources<HistoryNoteDto>> getNoteHistoryById(@PathVariable Integer noteId) {
         List<HistoryNote> historyNotes = noteService.getNoteHistoryById(noteId);
 
+        if (historyNotes.isEmpty()) {
+            return notFound();
+        }
+
         Resources<HistoryNoteDto> resources = new Resources<>(historyNoteAssembler.toResources(historyNotes));
         resources.add(linkTo(methodOn(NoteController.class).getNoteHistoryById(noteId)).withSelfRel());
 
@@ -80,6 +84,11 @@ public class NoteController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         return ResponseEntity.badRequest().build();
     }
 
