@@ -39,9 +39,6 @@ public class HistoryNote implements Identifiable<Integer> {
     private int version;
 
     @Column(nullable = false, updatable = false)
-    private boolean deleted;
-
-    @Column(nullable = false, updatable = false)
     private LocalDateTime created;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -57,7 +54,6 @@ public class HistoryNote implements Identifiable<Integer> {
         this.title = note.getTitle();
         this.content = note.getContent();
         this.version = note.getVersion();
-        this.deleted = note.isDeleted();
     }
 
     @Override

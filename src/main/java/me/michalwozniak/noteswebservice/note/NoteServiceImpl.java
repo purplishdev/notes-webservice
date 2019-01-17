@@ -35,7 +35,7 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public Optional<Note> updateNoteById(Integer id, @Valid NoteDto dto) {
         return getNoteById(id).map(note -> {
-            saveNoteHistory(note);
+            archiveNoteSnapshot(note);
             return dto.update(note);
         });
     }
@@ -50,8 +50,8 @@ public class NoteServiceImpl implements NoteService {
     public boolean deleteNoteById(Integer id) {
         return getNoteById(id)
                 .map(note -> {
+                    archiveNoteSnapshot(note);
                     note.delete();
-                    saveNoteHistory(note);
                     return true;
                 })
                 .orElse(false);
@@ -63,7 +63,7 @@ public class NoteServiceImpl implements NoteService {
         return historyNoteRepository.findAllByNoteId(id);
     }
 
-    protected void saveNoteHistory(Note note) {
+    protected void archiveNoteSnapshot(Note note) {
         HistoryNote historyNote = new HistoryNote(note);
         historyNoteRepository.save(historyNote);
     }
