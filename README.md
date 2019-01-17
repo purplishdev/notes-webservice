@@ -1,5 +1,6 @@
 # Notes Webservice
-Java Spring implementation of notes assignment
+Java Spring implementation of notes assignment.\
+Spring DATA RestRepositories was not used intentionally.
 
 ## What is required for running the project
 - Java 8 JDK
@@ -16,7 +17,7 @@ To just start the application run command: `mvn clean spring-boot run -Dspring.p
 
 Server will be automatically started and ready for requests at `http://localhost:8080/api/v1`
 
-Or simply use demo available at Heroku `https://notes-webservice.herokuapp.com/api/v1`
+Or simply use demo available at Heroku `https://notes-webservice.herokuapp.com/api/v1`\
 `NOTE: first request will take longer time because of server startup`
 
 ## Example usages (ie. like example curl commands)
